@@ -28,6 +28,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        app:backgroundTint="@android:color/holo_orange_dark"
+        app:elevation="6dp"
+        app:fabSize="normal"
+        android:scaleType="center"
+        app:rippleColor="@android:color/darker_gray"
+        app:srcCompat="@android:drawable/ic_menu_send" />
 
 </android.support.design.widget.CoordinatorLayout>

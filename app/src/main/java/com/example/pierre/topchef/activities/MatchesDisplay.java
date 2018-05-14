@@ -1,7 +1,12 @@
 package com.example.pierre.topchef.activities;
 
+import android.content.ContentResolver;
+import android.database.CharArrayBuffer;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.DataSetObserver;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -31,6 +36,7 @@ public class MatchesDisplay extends AppCompatActivity {
     private ArrayList<Product> productsMatch;
     private ArrayList<Product> productsNoMatch;
     int width, height;
+    String language;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +70,8 @@ public class MatchesDisplay extends AppCompatActivity {
         /*
         Fill productsMatch with a list of products that work well with the products supplied to the activity
          */
+
+        language = this.getIntent().getStringExtra("language");
         ArrayList<String> productNames = this.getIntent().getStringArrayListExtra("productList");
         for (String name : productNames) {
             Product prod = getProduct(name);
@@ -110,10 +118,18 @@ public class MatchesDisplay extends AppCompatActivity {
     private Product getProduct(String name) {
 
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        if (language.equals("FRENCH")) {
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" = '" +name+ "';"
+                    , null);
+        }
+        else if (language.equals("ENGLISH")){
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" = '" +name+ "';"
+                    , null);
+        }
 
-        Cursor cursor = db.rawQuery(
-                "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" = '" +name+ "';"
-                , null);
         int idPin=-1;
         while (cursor.moveToNext()) {
             idPin = cursor.getInt(
@@ -223,27 +239,27 @@ public class MatchesDisplay extends AppCompatActivity {
                 LinearLayout.LayoutParams params;
                 switch (prod.getId()) {
                     case 1 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.banane, null));
+                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                         params = new LinearLayout.LayoutParams(width/3,height/6);
                         img.setLayoutParams(params);
                         break;
                     case 2 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.chocolatblanc, null));
+                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                         params = new LinearLayout.LayoutParams(width/3,height/6);
                         img.setLayoutParams(params);
                         break;
                     case 3 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.menthe, null));
+                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                         params = new LinearLayout.LayoutParams(width/3,height/6);
                         img.setLayoutParams(params);
                         break;
                     case 4 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.creme_fouettee, null));
+                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                         params = new LinearLayout.LayoutParams(width/3,height/6);
                         img.setLayoutParams(params);
                         break;
                     default :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.drawdefault, null));
+                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                         params = new LinearLayout.LayoutParams(width/3,height/6);
                         img.setLayoutParams(params);
                         break;
@@ -290,27 +306,27 @@ public class MatchesDisplay extends AppCompatActivity {
             LinearLayout.LayoutParams params;
             switch (product.getId()) {
                 case 1 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.banane, null));
+                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                     params = new LinearLayout.LayoutParams(width/3,height/6);
                     img.setLayoutParams(params);
                     break;
                 case 2 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.chocolatblanc, null));
+                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                     params = new LinearLayout.LayoutParams(width/3,height/6);
                     img.setLayoutParams(params);
                     break;
                 case 3 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.menthe, null));
+                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                     params = new LinearLayout.LayoutParams(width/3,height/6);
                     img.setLayoutParams(params);
                     break;
                 case 4 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.creme_fouettee, null));
+                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                     params = new LinearLayout.LayoutParams(width/3,height/6);
                     img.setLayoutParams(params);
                     break;
                 default :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.drawdefault, null));
+                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
                     params = new LinearLayout.LayoutParams(width/3,height/6);
                     img.setLayoutParams(params);
                     break;

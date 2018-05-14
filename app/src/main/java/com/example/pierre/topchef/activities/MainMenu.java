@@ -4,12 +4,17 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -23,7 +28,10 @@ import java.util.ArrayList;
 public class MainMenu extends AppCompatActivity {
 
 
+    private String language;
     private DatabaseHelper myDbHelper;
+    private ArrayList<String> PRODUCTS;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,12 +44,30 @@ public class MainMenu extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+               searchMatches();
             }
         });
 
         myDbHelper = new DatabaseHelper(this);
+        setLanguageFrench();
+
+        Button b = findViewById(R.id.buttonfr);
+
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setLanguageFrench();
+            }
+        });
+
+        b = findViewById(R.id.buttonen);
+
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setLanguageEnglish();
+            }
+        });
 
 
         LinearLayout ll = findViewById(R.id.scrollVertical);
@@ -59,22 +85,95 @@ public class MainMenu extends AppCompatActivity {
             }
         });
 
-        EditText et = new EditText(this);
+        initDb();
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select products."+ DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR +" from products;"
+                , null);
+
+        PRODUCTS = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            PRODUCTS.add(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)));
+        }
+
+        cursor.close();
+        db.close();
+
+        AutoCompleteTextView et = new AutoCompleteTextView(this);
         et.setHint("Enter the product name");
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+        et.setAdapter(arrayAdapter);
+
 
         line.addView(et);
         line.addView(bt);
 
-        View v = findViewById(R.id.searchButton);
+    }
 
-        v.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchMatches();
-            }
-        });
+    private void setLanguageFrench() {
+        this.language = "FRENCH";
+        Button b = findViewById(R.id.buttonfr);
+        b.getBackground(). setColorFilter(Color.rgb(66, 244, 152), PorterDuff.Mode.SRC_IN);
+        b = findViewById(R.id.buttonen);
+        b.getBackground(). setColorFilter(Color.rgb(214, 214, 214), PorterDuff.Mode.SRC_IN);
 
-        initDb();
+        LinearLayout ll = findViewById(R.id.scrollVertical);
+        int nbLines = ll.getChildCount();
+        // TODO use Product Objects
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select products."+ DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR +" from products;"
+                , null);
+
+        PRODUCTS = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            PRODUCTS.add(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)));
+        }
+
+        cursor.close();
+        db.close();
+
+        for (int i = 0; i < nbLines; i++) {
+            System.out.println(i);
+            LinearLayout line = (LinearLayout) ll.getChildAt(i);
+            AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+            et.setAdapter(arrayAdapter);
+        }
+    }
+
+    private void setLanguageEnglish() {
+        this.language = "ENGLISH";
+        Button b = findViewById(R.id.buttonen);
+        b.getBackground(). setColorFilter(Color.rgb(66, 244, 152), PorterDuff.Mode.SRC_IN);
+        b = findViewById(R.id.buttonfr);
+        b.getBackground(). setColorFilter(Color.rgb(214, 214, 214), PorterDuff.Mode.SRC_IN);
+        LinearLayout ll = findViewById(R.id.scrollVertical);
+        int nbLines = ll.getChildCount();
+        // TODO use Product Objects
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select products."+ DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN +" from products;"
+                , null);
+
+        PRODUCTS = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            PRODUCTS.add(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN)));
+        }
+
+        cursor.close();
+        db.close();
+
+        for (int i = 0; i < nbLines; i++) {
+            System.out.println(i);
+            LinearLayout line = (LinearLayout) ll.getChildAt(i);
+            AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+            et.setAdapter(arrayAdapter);
+        }
     }
 
     private void addAnotherProduct() {
@@ -123,6 +222,7 @@ public class MainMenu extends AppCompatActivity {
             products.add(et.getText().toString());
         }
         intent.putExtra("productList", products);
+        intent.putExtra("language", language);
         startActivity(intent);
     }
 
