@@ -142,6 +142,33 @@ public class MatchesDisplay extends AppCompatActivity {
         return new Product(idPin, name);
     }
 
+    public static Product getProduct(String name, String language, DatabaseHelper myDbHelper) {
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        if (language.equals("FRENCH")) {
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" = '" +name+ "';"
+                    , null);
+        }
+        else if (language.equals("ENGLISH")){
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" = '" +name+ "';"
+                    , null);
+        }
+
+        int idPin=-1;
+        while (cursor.moveToNext()) {
+            idPin = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+        }
+
+        cursor.close();
+        db.close();
+        return new Product(idPin, name);
+    }
+
     private ArrayList<Product> getGoodAssociations(Product pin) {
 
         SQLiteDatabase db = myDbHelper.getReadableDatabase();

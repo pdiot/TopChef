@@ -13,15 +13,18 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.pierre.topchef.R;
 import com.example.pierre.topchef.database.DatabaseContract;
 import com.example.pierre.topchef.database.DatabaseHelper;
+import com.example.pierre.topchef.metier.Product;
 
 import java.util.ArrayList;
 
@@ -31,6 +34,8 @@ public class MainMenu extends AppCompatActivity {
     private String language;
     private DatabaseHelper myDbHelper;
     private ArrayList<String> PRODUCTS;
+    ArrayAdapter<String> arrayAdapter;
+    private int nbLines = 0;
 
 
     @Override
@@ -48,6 +53,7 @@ public class MainMenu extends AppCompatActivity {
             }
         });
 
+        nbLines = 0;
         myDbHelper = new DatabaseHelper(this);
         setLanguageFrench();
 
@@ -74,7 +80,9 @@ public class MainMenu extends AppCompatActivity {
         LinearLayout line = new LinearLayout(this);
         line.setOrientation(LinearLayout.HORIZONTAL);
         line.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        line.setId(nbLines);
         ll.addView(line);
+        nbLines ++;
 
         Button bt = new Button(this);
         bt.setText("Add another product");
@@ -102,14 +110,31 @@ public class MainMenu extends AppCompatActivity {
 
         AutoCompleteTextView et = new AutoCompleteTextView(this);
         et.setHint("Enter the product name");
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
         et.setAdapter(arrayAdapter);
+        final int currentLine = nbLines - 1;
 
+
+        et.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                LinearLayout line = findViewById(currentLine);
+                AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
+
+                Product prod = MatchesDisplay.getProduct(et.getText().toString(), language, myDbHelper);
+                line.removeViewAt(0);
+                TextView textView = new TextView(MainMenu.this);
+                textView.setText(prod.getName());
+                line.addView(textView, 0);
+            }
+        });
 
         line.addView(et);
         line.addView(bt);
 
     }
+
+
 
     private void setLanguageFrench() {
         this.language = "FRENCH";
@@ -139,7 +164,7 @@ public class MainMenu extends AppCompatActivity {
             System.out.println(i);
             LinearLayout line = (LinearLayout) ll.getChildAt(i);
             AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+            arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
             et.setAdapter(arrayAdapter);
         }
     }
@@ -171,7 +196,7 @@ public class MainMenu extends AppCompatActivity {
             System.out.println(i);
             LinearLayout line = (LinearLayout) ll.getChildAt(i);
             AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+            arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
             et.setAdapter(arrayAdapter);
         }
     }
@@ -181,6 +206,8 @@ public class MainMenu extends AppCompatActivity {
         LinearLayout line = new LinearLayout(this);
         line.setOrientation(LinearLayout.HORIZONTAL);
         line.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        line.setId(nbLines);
+        nbLines ++;
 
         ll.addView(line);
 
@@ -193,8 +220,28 @@ public class MainMenu extends AppCompatActivity {
             }
         });
 
-        EditText et = new EditText(this);
+        AutoCompleteTextView et = new AutoCompleteTextView(this);
         et.setHint("Enter the product name");
+
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
+        et.setAdapter(arrayAdapter);
+
+
+        final int currentLine = nbLines - 1;
+
+        et.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                LinearLayout line = findViewById(currentLine);
+                AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
+
+                Product prod = MatchesDisplay.getProduct(et.getText().toString(), language, myDbHelper);
+                line.removeViewAt(0);
+                TextView textView = new TextView(MainMenu.this);
+                textView.setText(prod.getName());
+                line.addView(textView, 0);
+            }
+        });
 
         line.addView(et);
         line.addView(bt);
@@ -212,14 +259,14 @@ public class MainMenu extends AppCompatActivity {
         for (int i = 0; i < nbLines; i++) {
             System.out.println(i);
             LinearLayout line = (LinearLayout) ll.getChildAt(i);
-            EditText et = (EditText) line.getChildAt(0);
+            TextView et = (TextView) line.getChildAt(0);
             if (et==null) {
                 System.out.println("line(" + i + " est null");
             }
             else {
                 System.out.println(et.toString());
+                products.add(et.getText().toString());
             }
-            products.add(et.getText().toString());
         }
         intent.putExtra("productList", products);
         intent.putExtra("language", language);
