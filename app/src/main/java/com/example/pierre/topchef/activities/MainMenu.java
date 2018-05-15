@@ -2,14 +2,14 @@ package com.example.pierre.topchef.activities;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -20,7 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,7 +30,6 @@ import com.example.pierre.topchef.database.DatabaseContract;
 import com.example.pierre.topchef.database.DatabaseHelper;
 import com.example.pierre.topchef.metier.Product;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MainMenu extends AppCompatActivity {
@@ -63,6 +62,7 @@ public class MainMenu extends AppCompatActivity {
         nbLines = 0;
         products = new ArrayList<>();
         myDbHelper = new DatabaseHelper(this);
+        myDbHelper.onUpgrade(myDbHelper.getReadableDatabase(), 1, 2);
         setLanguageFrench();
         getScreenDimensions();
 
@@ -204,22 +204,44 @@ public class MainMenu extends AppCompatActivity {
 
                 Product prod = MatchesDisplay.getProduct(et.getText().toString(), language, myDbHelper);
                 products.add(prod);
+                final Product product = prod;
                 line.removeViewAt(0);
                 TextView textView = new TextView(MainMenu.this);
                 textView.setText(prod.getName());
                 line.addView(textView, 0);
                 ImageView img = new ImageView(MainMenu.this);
                 img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), prod.getPicture_id(), null));
-                LinearLayout.LayoutParams params;// = new LinearLayout.LayoutParams(width/4, height/4);
-                //img.setLayoutParams(params);
+                LinearLayout.LayoutParams params;
+                params = new LinearLayout.LayoutParams(width/5, height/5);
+                img.setLayoutParams(params);
+
+                ImageButton removeButton = new ImageButton(MainMenu.this);
+                removeButton.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.baseline_backspace_black_18dp, null));
+
+                removeButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        LinearLayout ll = findViewById(R.id.scrollVertical);
+                        LinearLayout line = findViewById(currentLine);
+                        ll.removeView(line);
+                        if (ll.getChildCount() == 0) {
+                            addAnotherProduct();
+                        }
+                        products.remove(product);
+                    }
+                });
+
                 line.addView(img, 0);
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 line.setLayoutParams(params);
+                line.addView(removeButton);
             }
         });
 
+
         line.addView(et);
         line.addView(bt);
+
         et.requestFocus();
     }
 
@@ -229,7 +251,7 @@ public class MainMenu extends AppCompatActivity {
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.scrollVertical);
 
-        for (int i = 0; i < nbLines; i++) {
+        for (int i = 0; i < ll.getChildCount(); i++) {
             LinearLayout line = (LinearLayout) ll.getChildAt(i);
             if (line.getChildAt(0) instanceof AutoCompleteTextView) {
                 AutoCompleteTextView tv = (AutoCompleteTextView) line.getChildAt(0);
@@ -250,7 +272,7 @@ public class MainMenu extends AppCompatActivity {
             intent.putExtra("productIds", ids);
         } else {
             ArrayList<String> names = new ArrayList<>();
-            for (int i = 0; i<nbLines; i++) {
+            for (int i = 0; i<ll.getChildCount(); i++) {
                 LinearLayout line = (LinearLayout) ll.getChildAt(i);
                 if (line.getChildAt(0) instanceof AutoCompleteTextView) {
                     AutoCompleteTextView tv = (AutoCompleteTextView) line.getChildAt(0);
@@ -270,8 +292,22 @@ public class MainMenu extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void initDb() {
+    private void getScreenDimensions() {
+        Display disp = getWindowManager().getDefaultDisplay();
+        width = disp.getWidth();
+        height = disp.getHeight();
+    }
 
+    private void initDb() {
+        myDbHelper = new DatabaseHelper(this);
+        insertTastes();
+        insertProducts();
+        insertGoodAssociations();
+        insertBadAssociations();
+
+    }
+
+    private void insertProducts() {
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
 
         Cursor cursor = db.rawQuery("select * from products", null);
@@ -280,7 +316,7 @@ public class MainMenu extends AppCompatActivity {
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "banane");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "banana");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 1);
-            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.banane);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
 
@@ -288,7 +324,7 @@ public class MainMenu extends AppCompatActivity {
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "chocolat blanc");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "white chocolate");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 1);
-            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.chocolat_blanc);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
 
@@ -296,14 +332,14 @@ public class MainMenu extends AppCompatActivity {
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "menthe");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "mint");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 2);
-            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.menthe);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
             values = new ContentValues();
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "crème fouettée");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "whipped cream");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 1);
-            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.creme_fouettee);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
             System.out.println(cursor.getCount() + " products in base");
@@ -311,8 +347,13 @@ public class MainMenu extends AppCompatActivity {
         } else {
             System.out.println(cursor.getCount() + " products in base");
         }
+    }
 
-        cursor = db.rawQuery("select * from tastes", null);
+    private void insertTastes() {
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("select * from tastes", null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
             values.put(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR, "sucré");
@@ -330,7 +371,12 @@ public class MainMenu extends AppCompatActivity {
             System.out.println(cursor.getCount() + " tastes in base");
         }
 
-        cursor = db.rawQuery("select * from good_associations", null);
+    }
+
+    private void insertGoodAssociations() {
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("select * from good_associations", null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
             values.put(DatabaseContract.GoodAssociationsTable.COLUMN_NAME_PRODUCT_ID_1, 1);
@@ -352,8 +398,12 @@ public class MainMenu extends AppCompatActivity {
         else {
             System.out.println(cursor.getCount() + " good associations in base");
         }
+    }
 
-        cursor = db.rawQuery("select * from bad_associations", null);
+    private void insertBadAssociations() {
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("select * from bad_associations", null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
             values.put(DatabaseContract.BadAssociationsTable.COLUMN_NAME_PRODUCT_ID_1, 1);
@@ -366,13 +416,6 @@ public class MainMenu extends AppCompatActivity {
         else {
             System.out.println(cursor.getCount() + " bad associations in base");
         }
-
-
     }
 
-    private void getScreenDimensions() {
-        Display disp = getWindowManager().getDefaultDisplay();
-        width = disp.getWidth();
-        height = disp.getHeight();
-    }
 }

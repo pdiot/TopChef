@@ -47,7 +47,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final String SQL_DELETE_BAD_ASSOCIATIONS =
             "DROP TABLE IF EXISTS " + DatabaseContract.BadAssociationsTable.TABLE_NAME;
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "TopChef.db";
 
     public DatabaseHelper (Context context) {

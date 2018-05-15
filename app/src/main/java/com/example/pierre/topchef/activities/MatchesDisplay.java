@@ -230,25 +230,29 @@ public class MatchesDisplay extends AppCompatActivity {
         Cursor cursor = null;
         if (language.equals("FRENCH")) {
             cursor = db.rawQuery(
-                    "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" = '" +name+ "';"
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" = '" +name+ "';"
                     , null);
         }
         else if (language.equals("ENGLISH")){
             cursor = db.rawQuery(
-                    "select products."+DatabaseContract.ProductsTable._ID + " from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" = '" +name+ "';"
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" = '" +name+ "';"
                     , null);
         }
 
         int idPin=-1;
+        int idDrawable=-1;
         while (cursor.moveToNext()) {
             idPin = cursor.getInt(
                     cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+            idDrawable = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID)
             );
         }
 
         cursor.close();
         db.close();
-        return new Product(idPin, name);
+        return new Product(idPin, name, idDrawable);
     }
 
     private ArrayList<Product> getGoodAssociations(Product pin) {
