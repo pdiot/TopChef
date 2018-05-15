@@ -3,6 +3,7 @@ package com.example.pierre.topchef.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.ContactsContract;
 
 public class DatabaseHelper extends SQLiteOpenHelper{
 
@@ -11,7 +12,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                     DatabaseContract.ProductsTable._ID + " INTEGER PRIMARY KEY," +
                     DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID + " INTEGER," +
                     DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN + " TEXT," +
-                    DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR + " TEXT)"
+                    DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR + " TEXT," +
+                    DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID + " INTEGER)"
             ;
 
     private static final String SQL_CREATE_TASTES_TABLE =
@@ -45,7 +47,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final String SQL_DELETE_BAD_ASSOCIATIONS =
             "DROP TABLE IF EXISTS " + DatabaseContract.BadAssociationsTable.TABLE_NAME;
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "TopChef.db";
 
     public DatabaseHelper (Context context) {

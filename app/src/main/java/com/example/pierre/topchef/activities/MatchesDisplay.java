@@ -116,7 +116,7 @@ public class MatchesDisplay extends AppCompatActivity {
 
     }
 
-    private Product getProduct(String name) {
+    private int getId(String name) {
 
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
         Cursor cursor = null;
@@ -140,7 +140,7 @@ public class MatchesDisplay extends AppCompatActivity {
 
         cursor.close();
         db.close();
-        return new Product(idPin, name);
+        return idPin;
     }
 
     private Product getProduct(int id) {
@@ -149,20 +149,24 @@ public class MatchesDisplay extends AppCompatActivity {
         Cursor cursor = null;
         if (language.equals("FRENCH")) {
             cursor = db.rawQuery(
-                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" from products where products."+DatabaseContract.ProductsTable._ID+" = " +id+ ";"
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+", products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" from products where products."+DatabaseContract.ProductsTable._ID+" = " +id+ ";"
                     , null);
         }
         else if (language.equals("ENGLISH")){
             cursor = db.rawQuery(
-                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" from products where products."+DatabaseContract.ProductsTable._ID+" = '" +id+ "';"
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+", products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" from products where products."+DatabaseContract.ProductsTable._ID+" = '" +id+ "';"
                     , null);
         }
 
         int idPin=-1;
+        int idDrawable=-1;
         String name="";
         while (cursor.moveToNext()) {
             idPin = cursor.getInt(
                     cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+            idDrawable = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID)
             );
             if (language.equals("FRENCH")) {
                 name = cursor.getString(
@@ -177,7 +181,7 @@ public class MatchesDisplay extends AppCompatActivity {
 
         cursor.close();
         db.close();
-        return new Product(idPin, name);
+        return new Product(idPin, name, idDrawable);
     }
 
     public static Product getProduct(String name, String language, DatabaseHelper myDbHelper) {
@@ -212,7 +216,7 @@ public class MatchesDisplay extends AppCompatActivity {
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
 
         Cursor cursor1 = db.rawQuery(
-                "select products._id, products.name_fr " +
+                "select products._id, products.name_fr, products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" " +
                         "from products inner join good_associations on products._id = good_associations.product_id_2 " +
                         "where good_associations.product_id_1 = " + pin.getId() + ";"
                 , null);
@@ -221,6 +225,9 @@ public class MatchesDisplay extends AppCompatActivity {
         while (cursor1.moveToNext()) {
             int id = cursor1.getInt(
                     cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+            int drawableId = cursor1.getInt(
+                    cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID)
             );
             String name="";
             if (language.equals("FRENCH")) {
@@ -259,7 +266,7 @@ public class MatchesDisplay extends AppCompatActivity {
                 }
                 cursor2.close();
             }
-            ret.add(new Product(id, name, taste));
+            ret.add(new Product(id, name, taste, drawableId));
         }
 
         cursor1.close();
@@ -272,7 +279,7 @@ public class MatchesDisplay extends AppCompatActivity {
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
 
         Cursor cursor1 = db.rawQuery(
-                "select products._id, products.name_fr " +
+                "select products._id, products.name_fr, products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" " +
                         "from products inner join bad_associations on products._id = bad_associations.product_id_2 " +
                         "where bad_associations.product_id_1 = " + pin.getId() + ";"
                 , null);
@@ -283,6 +290,9 @@ public class MatchesDisplay extends AppCompatActivity {
         while (cursor1.moveToNext()) {
             int id = cursor1.getInt(
                     cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+            int drawableId = cursor1.getInt(
+                    cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID)
             );
             String name="";
             if (language.equals("FRENCH")) {
@@ -321,7 +331,7 @@ public class MatchesDisplay extends AppCompatActivity {
                 }
                 cursor2.close();
             }
-            ret.add(new Product(id, name, taste));
+            ret.add(new Product(id, name, taste, drawableId));
         }
 
         cursor1.close();
@@ -342,37 +352,15 @@ public class MatchesDisplay extends AppCompatActivity {
 
                 ImageView img = new ImageView(this);
                 LinearLayout.LayoutParams params;
-                switch (prod.getId()) {
-                    case 1 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                        params = new LinearLayout.LayoutParams(width/3,height/6);
-                        img.setLayoutParams(params);
-                        break;
-                    case 2 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                        params = new LinearLayout.LayoutParams(width/3,height/6);
-                        img.setLayoutParams(params);
-                        break;
-                    case 3 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                        params = new LinearLayout.LayoutParams(width/3,height/6);
-                        img.setLayoutParams(params);
-                        break;
-                    case 4 :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                        params = new LinearLayout.LayoutParams(width/3,height/6);
-                        img.setLayoutParams(params);
-                        break;
-                    default :
-                        img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                        params = new LinearLayout.LayoutParams(width/3,height/6);
-                        img.setLayoutParams(params);
-                        break;
-                }
+
+                img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), prod.getPicture_id(), null));
+                params = new LinearLayout.LayoutParams(width/3,height/6);
+                img.setLayoutParams(params);
+
                 TextView matchName = new TextView(this);
-                matchName.setText(prod.getName());
+                matchName.setText(" " + prod.getName() + " ");
                 TextView matchTaste = new TextView(this);
-                matchTaste.setText(prod.getTaste());
+                matchTaste.setText(" " + prod.getTaste() + " ");
                 LinearLayout horizontalLayout = new LinearLayout(this);
                 horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
                 horizontalLayout.addView(img);
@@ -409,37 +397,15 @@ public class MatchesDisplay extends AppCompatActivity {
         for (Product product : productsNoMatch) {
             ImageView img = new ImageView(this);
             LinearLayout.LayoutParams params;
-            switch (product.getId()) {
-                case 1 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                    params = new LinearLayout.LayoutParams(width/3,height/6);
-                    img.setLayoutParams(params);
-                    break;
-                case 2 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                    params = new LinearLayout.LayoutParams(width/3,height/6);
-                    img.setLayoutParams(params);
-                    break;
-                case 3 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                    params = new LinearLayout.LayoutParams(width/3,height/6);
-                    img.setLayoutParams(params);
-                    break;
-                case 4 :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                    params = new LinearLayout.LayoutParams(width/3,height/6);
-                    img.setLayoutParams(params);
-                    break;
-                default :
-                    img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.index, null));
-                    params = new LinearLayout.LayoutParams(width/3,height/6);
-                    img.setLayoutParams(params);
-                    break;
-            }
+
+            img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), product.getPicture_id(), null));
+            params = new LinearLayout.LayoutParams(width/3,height/6);
+            img.setLayoutParams(params);
+
             TextView matchName = new TextView(this);
-            matchName.setText(product.getName());
+            matchName.setText(" " + product.getName() + " ");
             TextView matchTaste = new TextView(this);
-            matchTaste.setText(product.getTaste());
+            matchTaste.setText(" " + product.getTaste() + " ");
             LinearLayout horizontalLayout = new LinearLayout(this);
             horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
             horizontalLayout.addView(img);

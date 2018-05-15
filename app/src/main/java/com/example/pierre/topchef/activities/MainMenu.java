@@ -10,14 +10,18 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -38,6 +42,7 @@ public class MainMenu extends AppCompatActivity {
     ArrayAdapter<String> arrayAdapter;
     private int nbLines = 0;
     private ArrayList<Product> products;
+    int width, height;
 
 
     @Override
@@ -59,6 +64,7 @@ public class MainMenu extends AppCompatActivity {
         products = new ArrayList<>();
         myDbHelper = new DatabaseHelper(this);
         setLanguageFrench();
+        getScreenDimensions();
 
         Button b = findViewById(R.id.buttonfr);
 
@@ -78,24 +84,6 @@ public class MainMenu extends AppCompatActivity {
             }
         });
 
-
-        LinearLayout ll = findViewById(R.id.scrollVertical);
-        LinearLayout line = new LinearLayout(this);
-        line.setOrientation(LinearLayout.HORIZONTAL);
-        line.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-        line.setId(nbLines);
-        ll.addView(line);
-        nbLines ++;
-
-        Button bt = new Button(this);
-        bt.setText("Add another product");
-        bt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addAnotherProduct();
-            }
-        });
-
         initDb();
 
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
@@ -111,34 +99,9 @@ public class MainMenu extends AppCompatActivity {
         cursor.close();
         db.close();
 
-        AutoCompleteTextView et = new AutoCompleteTextView(this);
-        et.setHint("Enter the product name");
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, PRODUCTS);
-        et.setAdapter(arrayAdapter);
-        final int currentLine = nbLines - 1;
-
-
-        et.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                LinearLayout line = findViewById(currentLine);
-                AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
-
-                Product prod = MatchesDisplay.getProduct(et.getText().toString(), language, myDbHelper);
-                products.add(prod);
-                line.removeViewAt(0);
-                TextView textView = new TextView(MainMenu.this);
-                textView.setText(prod.getName());
-                line.addView(textView, 0);
-            }
-        });
-
-        line.addView(et);
-        line.addView(bt);
+        addAnotherProduct();
 
     }
-
-
 
     private void setLanguageFrench() {
         this.language = "FRENCH";
@@ -240,10 +203,18 @@ public class MainMenu extends AppCompatActivity {
                 AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
 
                 Product prod = MatchesDisplay.getProduct(et.getText().toString(), language, myDbHelper);
+                products.add(prod);
                 line.removeViewAt(0);
                 TextView textView = new TextView(MainMenu.this);
                 textView.setText(prod.getName());
                 line.addView(textView, 0);
+                ImageView img = new ImageView(MainMenu.this);
+                img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), prod.getPicture_id(), null));
+                LinearLayout.LayoutParams params;// = new LinearLayout.LayoutParams(width/4, height/4);
+                //img.setLayoutParams(params);
+                line.addView(img, 0);
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                line.setLayoutParams(params);
             }
         });
 
@@ -254,6 +225,17 @@ public class MainMenu extends AppCompatActivity {
 
     private void searchMatches() {
         Intent intent = new Intent(this, MatchesDisplay.class);
+        Boolean hasOnlyProducts = true;
+
+        LinearLayout ll = (LinearLayout) findViewById(R.id.scrollVertical);
+
+        for (int i = 0; i < nbLines; i++) {
+            LinearLayout line = (LinearLayout) ll.getChildAt(0);
+            if (line.getChildAt(0) instanceof AutoCompleteTextView) {
+                AutoCompleteTextView tv = (AutoCompleteTextView) line.getChildAt(0);
+            }
+        }
+
 
         ArrayList<Integer> ids = new ArrayList<>();
         for (Product prod : products) {
@@ -274,6 +256,7 @@ public class MainMenu extends AppCompatActivity {
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "banane");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "banana");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 1);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
 
@@ -281,6 +264,7 @@ public class MainMenu extends AppCompatActivity {
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "chocolat blanc");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "white chocolate");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 1);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
 
@@ -288,12 +272,14 @@ public class MainMenu extends AppCompatActivity {
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "menthe");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "mint");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 2);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
             values = new ContentValues();
-            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "creme fouettee");
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR, "crème fouettée");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN, "whipped cream");
             values.put(DatabaseContract.ProductsTable.COLUMN_NAME_TASTE_ID, 1);
+            values.put(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID, R.drawable.index);
 
             db.insert(DatabaseContract.ProductsTable.TABLE_NAME, null, values);
             System.out.println(cursor.getCount() + " products in base");
@@ -358,5 +344,11 @@ public class MainMenu extends AppCompatActivity {
         }
 
 
+    }
+
+    private void getScreenDimensions() {
+        Display disp = getWindowManager().getDefaultDisplay();
+        width = disp.getWidth();
+        height = disp.getHeight();
     }
 }

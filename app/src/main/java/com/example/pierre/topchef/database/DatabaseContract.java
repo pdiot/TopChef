@@ -13,6 +13,7 @@ public class DatabaseContract {
         public static final String COLUMN_NAME_TASTE_ID = "taste_id";
         public static final String COLUMN_NAME_NAME_FR = "name_fr";
         public static final String COLUMN_NAME_NAME_EN = "name_en";
+        public static final String COLUMN_NAME_DRAWABLE_ID = "drawable_id";
     }
 
     public static class TasteTable implements BaseColumns {
