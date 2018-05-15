@@ -230,19 +230,43 @@ public class MainMenu extends AppCompatActivity {
         LinearLayout ll = (LinearLayout) findViewById(R.id.scrollVertical);
 
         for (int i = 0; i < nbLines; i++) {
-            LinearLayout line = (LinearLayout) ll.getChildAt(0);
+            LinearLayout line = (LinearLayout) ll.getChildAt(i);
             if (line.getChildAt(0) instanceof AutoCompleteTextView) {
                 AutoCompleteTextView tv = (AutoCompleteTextView) line.getChildAt(0);
+                Product prod = MatchesDisplay.getProduct(tv.getText().toString(), language, myDbHelper);
+                if (prod == null) {
+                    hasOnlyProducts = false;
+                } else {
+                    products.add(prod);
+                }
             }
         }
 
-
-        ArrayList<Integer> ids = new ArrayList<>();
-        for (Product prod : products) {
-            ids.add(prod.getId());
+        if (hasOnlyProducts) {
+            ArrayList<Integer> ids = new ArrayList<>();
+            for (Product prod : products) {
+                ids.add(prod.getId());
+            }
+            intent.putExtra("productIds", ids);
+        } else {
+            ArrayList<String> names = new ArrayList<>();
+            for (int i = 0; i<nbLines; i++) {
+                LinearLayout line = (LinearLayout) ll.getChildAt(i);
+                if (line.getChildAt(0) instanceof AutoCompleteTextView) {
+                    AutoCompleteTextView tv = (AutoCompleteTextView) line.getChildAt(0);
+                    names.add(tv.getText().toString());
+                }
+            }
+            for (Product prod : products) {
+                names.add(prod.getName());
+            }
+            intent.putExtra("productNames", names);
         }
-        intent.putExtra("productIds", ids);
+
+
+
         intent.putExtra("language", language);
+        intent.putExtra("hasOnlyProducts", hasOnlyProducts);
         startActivity(intent);
     }
 

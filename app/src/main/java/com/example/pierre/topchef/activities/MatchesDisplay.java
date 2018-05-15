@@ -72,11 +72,20 @@ public class MatchesDisplay extends AppCompatActivity {
          */
 
         language = this.getIntent().getStringExtra("language");
-        ArrayList<Integer> ids = this.getIntent().getIntegerArrayListExtra("productIds");
-
-        for (Integer id : ids) {
-            Product prod = getProduct(id);
-            productsIn.add(prod);
+        Boolean hasOnlyProducts = this.getIntent().getBooleanExtra("hasOnlyProducts", false);
+        if (hasOnlyProducts) {
+            ArrayList<Integer> ids = this.getIntent().getIntegerArrayListExtra("productIds");
+            for (Integer id : ids) {
+                Product prod = getProduct(id);
+                productsIn.add(prod);
+            }
+        }
+        else {
+            ArrayList<String> names = this.getIntent().getStringArrayListExtra("productNames");
+            for (String name : names) {
+                Product prod = getProduct(name);
+                productsIn.add(prod);
+            }
         }
 
         for (Product product : productsIn) {
@@ -177,6 +186,37 @@ public class MatchesDisplay extends AppCompatActivity {
                         cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN)
                 );
             }
+        }
+
+        cursor.close();
+        db.close();
+        return new Product(idPin, name, idDrawable);
+    }
+
+    private Product getProduct(String name) {
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        if (language.equals("FRENCH")) {
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+", products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" = '" +name+ "';"
+                    , null);
+        }
+        else if (language.equals("ENGLISH")){
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+", products."+DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID+" from products where products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" = '" +name+ "';"
+                    , null);
+        }
+
+        int idPin=-1;
+        int idDrawable=-1;
+        while (cursor.moveToNext()) {
+            idPin = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+            idDrawable = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_DRAWABLE_ID)
+            );
         }
 
         cursor.close();
