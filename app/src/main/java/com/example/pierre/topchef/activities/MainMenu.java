@@ -26,6 +26,7 @@ import com.example.pierre.topchef.database.DatabaseContract;
 import com.example.pierre.topchef.database.DatabaseHelper;
 import com.example.pierre.topchef.metier.Product;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MainMenu extends AppCompatActivity {
@@ -36,6 +37,7 @@ public class MainMenu extends AppCompatActivity {
     private ArrayList<String> PRODUCTS;
     ArrayAdapter<String> arrayAdapter;
     private int nbLines = 0;
+    private ArrayList<Product> products;
 
 
     @Override
@@ -54,6 +56,7 @@ public class MainMenu extends AppCompatActivity {
         });
 
         nbLines = 0;
+        products = new ArrayList<>();
         myDbHelper = new DatabaseHelper(this);
         setLanguageFrench();
 
@@ -122,6 +125,7 @@ public class MainMenu extends AppCompatActivity {
                 AutoCompleteTextView et = (AutoCompleteTextView) line.getChildAt(0);
 
                 Product prod = MatchesDisplay.getProduct(et.getText().toString(), language, myDbHelper);
+                products.add(prod);
                 line.removeViewAt(0);
                 TextView textView = new TextView(MainMenu.this);
                 textView.setText(prod.getName());
@@ -251,24 +255,11 @@ public class MainMenu extends AppCompatActivity {
     private void searchMatches() {
         Intent intent = new Intent(this, MatchesDisplay.class);
 
-        LinearLayout ll = findViewById(R.id.scrollVertical);
-        int nbLines = ll.getChildCount();
-        // TODO use Product Objects
-        ArrayList<String> products = new ArrayList<String>();
-
-        for (int i = 0; i < nbLines; i++) {
-            System.out.println(i);
-            LinearLayout line = (LinearLayout) ll.getChildAt(i);
-            TextView et = (TextView) line.getChildAt(0);
-            if (et==null) {
-                System.out.println("line(" + i + " est null");
-            }
-            else {
-                System.out.println(et.toString());
-                products.add(et.getText().toString());
-            }
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (Product prod : products) {
+            ids.add(prod.getId());
         }
-        intent.putExtra("productList", products);
+        intent.putExtra("productIds", ids);
         intent.putExtra("language", language);
         startActivity(intent);
     }

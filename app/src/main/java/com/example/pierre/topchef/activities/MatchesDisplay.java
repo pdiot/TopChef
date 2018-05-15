@@ -72,9 +72,10 @@ public class MatchesDisplay extends AppCompatActivity {
          */
 
         language = this.getIntent().getStringExtra("language");
-        ArrayList<String> productNames = this.getIntent().getStringArrayListExtra("productList");
-        for (String name : productNames) {
-            Product prod = getProduct(name);
+        ArrayList<Integer> ids = this.getIntent().getIntegerArrayListExtra("productIds");
+
+        for (Integer id : ids) {
+            Product prod = getProduct(id);
             productsIn.add(prod);
         }
 
@@ -142,6 +143,43 @@ public class MatchesDisplay extends AppCompatActivity {
         return new Product(idPin, name);
     }
 
+    private Product getProduct(int id) {
+
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        if (language.equals("FRENCH")) {
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR+" from products where products."+DatabaseContract.ProductsTable._ID+" = " +id+ ";"
+                    , null);
+        }
+        else if (language.equals("ENGLISH")){
+            cursor = db.rawQuery(
+                    "select products."+DatabaseContract.ProductsTable._ID + ", products."+DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN+" from products where products."+DatabaseContract.ProductsTable._ID+" = '" +id+ "';"
+                    , null);
+        }
+
+        int idPin=-1;
+        String name="";
+        while (cursor.moveToNext()) {
+            idPin = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
+            );
+            if (language.equals("FRENCH")) {
+                name = cursor.getString(
+                        cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)
+                );
+            } else if (language.equals("ENGLISH")){
+                name = cursor.getString(
+                        cursor.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN)
+                );
+            }
+        }
+
+        cursor.close();
+        db.close();
+        return new Product(idPin, name);
+    }
+
     public static Product getProduct(String name, String language, DatabaseHelper myDbHelper) {
 
         SQLiteDatabase db = myDbHelper.getReadableDatabase();
@@ -184,22 +222,43 @@ public class MatchesDisplay extends AppCompatActivity {
             int id = cursor1.getInt(
                     cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
             );
-            String name = cursor1.getString(
-                    cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)
-            );
-            String taste = "";
-            Cursor cursor2 = db.rawQuery(
-                    "select tastes." +DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR+ " " +
-                            "from products inner join tastes on products.taste_id = tastes._id " +
-                            "where products._id = " + id + ";"
-                    , null);
-            while (cursor2.moveToNext()) {
-                taste = cursor2.getString(
-                        cursor2.getColumnIndexOrThrow(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR)
+            String name="";
+            if (language.equals("FRENCH")) {
+                name = cursor1.getString(
+                        cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)
                 );
             }
-
-            cursor2.close();
+            else  if (language.equals("ENGLISH")) {
+                name = cursor1.getString(
+                        cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN)
+                );
+            }
+            String taste = "";
+            if (language.equals("FRENCH")) {
+                Cursor cursor2 = db.rawQuery(
+                        "select tastes." + DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR + " " +
+                                "from products inner join tastes on products.taste_id = tastes._id " +
+                                "where products._id = " + id + ";"
+                        , null);
+                while (cursor2.moveToNext()) {
+                    taste = cursor2.getString(
+                            cursor2.getColumnIndexOrThrow(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR)
+                    );
+                }
+                cursor2.close();
+            } else if (language.equals("ENGLISH")) {
+                Cursor cursor2 = db.rawQuery(
+                        "select tastes." + DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_EN + " " +
+                                "from products inner join tastes on products.taste_id = tastes._id " +
+                                "where products._id = " + id + ";"
+                        , null);
+                while (cursor2.moveToNext()) {
+                    taste = cursor2.getString(
+                            cursor2.getColumnIndexOrThrow(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_EN)
+                    );
+                }
+                cursor2.close();
+            }
             ret.add(new Product(id, name, taste));
         }
 
@@ -225,25 +284,44 @@ public class MatchesDisplay extends AppCompatActivity {
             int id = cursor1.getInt(
                     cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable._ID)
             );
-            String name = cursor1.getString(
-                    cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)
-            );
-            String taste = "";
-            Cursor cursor2 = db.rawQuery(
-                    "select tastes." +DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR+ " " +
-                            "from products inner join tastes on products.taste_id = tastes._id " +
-                            "where products._id = " + id + ";"
-                    , null);
-            while (cursor2.moveToNext()) {
-                taste = cursor2.getString(
-                        cursor2.getColumnIndexOrThrow(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR)
+            String name="";
+            if (language.equals("FRENCH")) {
+                name = cursor1.getString(
+                        cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_FR)
                 );
             }
-
-            cursor2.close();
-            Product prd = new Product(id, name, taste);
-            System.out.println("Mauvaise association trouvée : " + prd.toString());
-            ret.add(prd);
+            else  if (language.equals("ENGLISH")) {
+                name = cursor1.getString(
+                        cursor1.getColumnIndexOrThrow(DatabaseContract.ProductsTable.COLUMN_NAME_NAME_EN)
+                );
+            }
+            String taste = "";
+            if (language.equals("FRENCH")) {
+                Cursor cursor2 = db.rawQuery(
+                        "select tastes." + DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR + " " +
+                                "from products inner join tastes on products.taste_id = tastes._id " +
+                                "where products._id = " + id + ";"
+                        , null);
+                while (cursor2.moveToNext()) {
+                    taste = cursor2.getString(
+                            cursor2.getColumnIndexOrThrow(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_FR)
+                    );
+                }
+                cursor2.close();
+            } else if (language.equals("ENGLISH")) {
+                Cursor cursor2 = db.rawQuery(
+                        "select tastes." + DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_EN + " " +
+                                "from products inner join tastes on products.taste_id = tastes._id " +
+                                "where products._id = " + id + ";"
+                        , null);
+                while (cursor2.moveToNext()) {
+                    taste = cursor2.getString(
+                            cursor2.getColumnIndexOrThrow(DatabaseContract.TasteTable.COLUMN_NAME_TASTE_NAME_EN)
+                    );
+                }
+                cursor2.close();
+            }
+            ret.add(new Product(id, name, taste));
         }
 
         cursor1.close();
